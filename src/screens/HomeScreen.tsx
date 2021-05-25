@@ -2,10 +2,11 @@ import * as React from 'react';
 import {FlatList, RefreshControl, SafeAreaView, StatusBar, StyleSheet} from 'react-native';
 import {getPosts} from '../rest/WpPostsRestClient';
 import {WpPostType} from "../types/WpPostType";
-import {Button, Card, Searchbar, Title} from 'react-native-paper';
+import {ActivityIndicator, Button, Caption, Card, Searchbar, Title} from 'react-native-paper';
 import HtmlComponent from '../components/common/HtmlComponent';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {executeDecode} from '../utils/TextUtil';
+import {AppContext} from '../AppContext';
 
 const INITIAL_PAGE = 1;
 
@@ -22,11 +23,11 @@ function HomeScreen() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [posts, setPosts] = React.useState<Array<WpPostType> | undefined>(undefined);
   const [refreshing, setRefreshing] = React.useState(false);
-
+  const {url} = React.useContext(AppContext);
   const route = useRoute<RouteProp<HomeScreenTypes, 'Blog'>>();
 
   React.useEffect(() => {
-    getPosts(page, searchQuery, route?.params?.categoryId).then(({data}) => {
+    url && getPosts(url, page, searchQuery, route?.params?.categoryId).then(({data}) => {
       if (posts) {
         setPosts([...posts, ...data])
       } else {
@@ -40,7 +41,7 @@ function HomeScreen() {
     setRefreshing(true);
     setPage(INITIAL_PAGE);
 
-    getPosts(INITIAL_PAGE, searchQuery).then(({data}) => {
+    url && getPosts(url, INITIAL_PAGE, searchQuery).then(({data}) => {
       setPosts(data);
     }).finally(() => setRefreshing(false))
   }
@@ -54,6 +55,10 @@ function HomeScreen() {
 
   const loadMorePosts = () => {
     setPage(page + 1);
+  }
+
+  if (!posts) {
+    return <ActivityIndicator/>
   }
 
 
@@ -82,7 +87,7 @@ const WpPostItem: React.FC<{ item: WpPostType }> = ({item}) => {
 
   const thumbnail = getThumbnail(item);
   return (
-      <Card>
+      <Card onPress={() => navigation.navigate("Details", {id: item.id})}>
         <Card.Content>
           <Title>{executeDecode(item.title?.rendered)}</Title>
           <HtmlComponent html={executeDecode(item.excerpt?.rendered)}/>
@@ -90,15 +95,18 @@ const WpPostItem: React.FC<{ item: WpPostType }> = ({item}) => {
         {thumbnail && <Card.Cover
             source={{uri: thumbnail}}/>}
 
-        <Card.Actions>
-          <Button onPress={() => navigation.navigate("Details", {id: item.id})}>Details</Button>
+
+        <Card.Actions style={styles.actions}>
+          <Caption>{new Date(item.date).toDateString()}</Caption>
+
+          <Button onPress={() => navigation.navigate("Details", {id: item.id})}>Read more</Button>
         </Card.Actions>
       </Card>)
 }
 
 const getThumbnail = (item: WpPostType) => {
   if (item._embedded['wp:featuredmedia'] && item._embedded['wp:featuredmedia'].length > 0) {
-    return item._embedded['wp:featuredmedia'][0].media_details?.sizes?.medium_large?.source_url;
+    return item._embedded['wp:featuredmedia'][0].media_details?.sizes?.full?.source_url;
   }
   return undefined;
 }
@@ -106,6 +114,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     marginTop: StatusBar.currentHeight || 0,
+  },
+  actions: {
+    flex: 1,
+    display: "flex",
+    justifyContent: "space-between"
   }
 });
 

@@ -8,6 +8,9 @@ import {Ionicons} from '@expo/vector-icons';
 import {createStackNavigator} from "@react-navigation/stack";
 import WpPostDetails from './src/screens/WpPostDetails';
 import ContactScreen from './src/screens/ContactScreen';
+import {CombinedDarkTheme} from './src/utils/AppConstants';
+import {AppContextProvider} from './src/AppContext';
+
 
 const RootStack = createStackNavigator();
 const CategoriesStackNavigator = createStackNavigator();
@@ -26,7 +29,7 @@ const HomeStack = () => {
 const CategoriesStack = () => {
   return (
       <CategoriesStackNavigator.Navigator>
-        <CategoriesStackNavigator.Screen name={"Categories"} component={CategoriesScreen}/>
+        <CategoriesStackNavigator.Screen name={"Categories"}   component={CategoriesScreen}/>
         <CategoriesStackNavigator.Screen name={"Blog"} component={HomeScreen}/>
         <CategoriesStackNavigator.Screen name={"Details"} component={WpPostDetails}/>
       </CategoriesStackNavigator.Navigator>
@@ -43,32 +46,36 @@ const InfoStack = () => {
 
 
 export default function App() {
+
+
   return (
-      <PaperProvider>
-        <NavigationContainer>
-          <Tab.Navigator>
-            <Tab.Screen options={{
-              tabBarLabel: "Blog",
-              tabBarIcon: ({color, size}) => (
-                  <Ionicons name="newspaper-outline" size={size} color={color}/>)
-            }} name="Blog" component={HomeStack}/>
-            <Tab.Screen
-                options={{
-                  tabBarLabel: "Categories",
-                  tabBarIcon: ({color, size}) => (
-                      <Ionicons name="list" size={size} color={color}/>)
-                }}
+      <PaperProvider theme={CombinedDarkTheme}>
+        <NavigationContainer theme={CombinedDarkTheme}>
+          <AppContextProvider>
+            <Tab.Navigator>
+              <Tab.Screen options={{
+                tabBarLabel: "Blog",
+                tabBarIcon: ({color, size}) => (
+                    <Ionicons name="newspaper-outline" size={size} color={color}/>)
+              }} name="Blog" component={HomeStack}/>
+              <Tab.Screen
+                  options={{
+                    tabBarLabel: "Categories",
+                    tabBarIcon: ({color, size}) => (
+                        <Ionicons name="list" size={size} color={color}/>)
+                  }}
 
-                name="Categories" component={CategoriesStack}/>
-            <Tab.Screen
-                options={{
-                  tabBarLabel: "Information",
-                  tabBarIcon: ({color, size}) => (
-                      <Ionicons name="information" size={size} color={color}/>)
-                }}
+                  name="Categories" component={CategoriesStack}/>
+              <Tab.Screen
+                  options={{
+                    tabBarLabel: "Information",
+                    tabBarIcon: ({color, size}) => (
+                        <Ionicons name="information" size={size} color={color}/>)
+                  }}
 
-                name="Info" component={InfoStack}/>
-          </Tab.Navigator>
+                  name="Info" component={InfoStack}/>
+            </Tab.Navigator>
+          </AppContextProvider>
         </NavigationContainer>
       </PaperProvider>
   );

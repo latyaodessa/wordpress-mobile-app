@@ -3,17 +3,24 @@ import {FlatList, SafeAreaView, StatusBar, StyleSheet} from 'react-native';
 import {getCategories} from '../rest/WpPostsRestClient';
 import {WpCategoryType} from "../types/WpCategoryType";
 import {useNavigation} from "@react-navigation/native";
-import {Avatar, List} from 'react-native-paper';
+import {ActivityIndicator, Avatar, List} from 'react-native-paper';
+import {AppContext} from "../AppContext";
+import { executeDecode } from '../utils/TextUtil';
 
 function CategoriesScreen() {
 
   const [categories, setCategories] = React.useState<Array<WpCategoryType> | undefined>(undefined);
+  const {url} = React.useContext(AppContext);
 
   React.useEffect(() => {
-    getCategories().then(({data}) => {
+    url && getCategories(url).then(({data}) => {
       setCategories(data);
     });
   }, [])
+
+  if (!categories) {
+    return <ActivityIndicator/>
+  }
 
   return (
       <SafeAreaView style={styles.container}>
@@ -31,9 +38,9 @@ const WpCategoryItem: React.FC<{ item: WpCategoryType }> = ({item}) => {
   const navigation = useNavigation();
 
   return (
-      <List.Item title={item.name}
+      <List.Item title={executeDecode(item.name)}
                  left={({style}) => <Avatar.Text style={style}
-                                                        label={item?.name?.substring(0, 2)}/>}
+                                                 label={item?.name?.substring(0, 2)}/>}
                  onPress={() => navigation.navigate("Blog", {categoryId: item.id})}
       />
   )

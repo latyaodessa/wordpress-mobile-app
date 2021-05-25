@@ -35,10 +35,10 @@ const HtmlComponent: React.FC<{ html?: string }> = ({html}) => {
           }}
           renderers={{
             img: (attr, node, styleProp) => {
-              return <ZoomableImage src={attr.src.toString()}/>;
+              return !!attr?.src ? <ZoomableImage src={attr.src.toString()}/> : null;
             },
             iframe: (attr, node, styleProp) => {
-              return attr?.src ? <RenderIframe src={attr.src.toString()}/> : null;
+              return !!attr?.src ? <RenderIframe src={attr.src.toString()}/> : null;
             },
             hr: () => <Divider/>,
           }}
@@ -49,7 +49,6 @@ const HtmlComponent: React.FC<{ html?: string }> = ({html}) => {
 
 const RenderIframe: React.FC<{ src: string }> = ({src}) => {
   const [componentWidth, setComponentWidth] = React.useState<number | undefined>(undefined);
-  const [componentHeight, setComponentHeight] = React.useState<number | undefined>(undefined);
   const {colors} = useTheme();
 
   const iFrameStyle = `border: 0; flex: 1; height: 100%; width: 100%; background-color: ${colors.background};`;
@@ -57,21 +56,20 @@ const RenderIframe: React.FC<{ src: string }> = ({src}) => {
   return (
       <View
           onLayout={(event) => {
-            const {width, height} = event.nativeEvent.layout;
+            const {width} = event.nativeEvent.layout;
             setComponentWidth(width);
-            setComponentHeight(height);
           }}
           style={{
             display: 'flex',
             flex: 1,
           }}
       >
-        {!componentWidth || !componentHeight ? (
+        {!componentWidth ? (
             <ActivityIndicator/>
         ) : (
             <WebView
                 originWhitelist={['*']}
-                style={{display: 'flex', flex: 1, width: componentWidth, height: componentHeight}}
+                style={{display: 'flex', flex: 1, width: componentWidth, height: "auto"}}
                 source={{
                   html: `<iframe style="${iFrameStyle}" src=${src} allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen/>`,
                 }}
